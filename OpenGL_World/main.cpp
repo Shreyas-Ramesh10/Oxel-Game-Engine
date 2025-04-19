@@ -1,0 +1,127 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<cmath>
+#include<vector>
+
+#include<GL/glew.h>
+#include<GLFW/glfw3.h>
+
+#include<glm/glm.hpp>
+#include<glm/gtc/matrix_transform.hpp>
+
+//Values stored in the GPU memory, we need to convert them to float values and glm::value_ptr will do that for us, 
+//in a sense they are not fit to be passed to the shader as raw value we need to have a pointer to the location there.
+#include<glm/gtc/type_ptr.hpp> 
+
+#include "Mesh.h"
+#include "Shader.h"
+#include "Window.h"
+/* new way to intitialise identity matrix
+glm::mat4 model(1.0f);
+glm::mat4 model = glm::mat4(1.0f);
+model = glm::mat4(1.0f);
+*/
+
+const float toRadians = 3.14159265359f / 180.0f; //Converting degrees to radians
+
+Window mainWindow;
+
+std::vector<Mesh*> meshList;
+std::vector<Shader> shaderList;
+
+
+// Vertex Shader
+static const char* vShader = "Shaders/shader_vert.glsl.txt";
+
+// Fragment Shader
+static const char* fShader = "Shaders/shader_frag.glsl.txt";
+
+
+void CreateObjects()
+{
+	unsigned int indices[] = {
+		0, 3, 1,
+		1 ,3, 2,
+		2, 3, 0,
+		0, 1, 2,
+	};
+	GLfloat vertices[] = {
+		-1.0f, -1.0f, 0.0f, // Bottom Left
+		 0.0f, -1.0f, 1.0f,// Background
+		 1.0f, -1.0f, 0.0f,// Bottom Right
+		 0.0f,  1.0f, 0.0f,// Top
+	};
+
+	Mesh* obj1 = new Mesh();
+	obj1->CreateMesh(vertices, indices, 12, 12);
+	meshList.push_back(obj1);
+
+	Mesh* obj2 = new Mesh();
+	obj2->CreateMesh(vertices, indices, 12, 12);
+	meshList.push_back(obj2);
+}
+
+void CreateShaders()
+{
+	Shader* shader1 = new Shader();
+	shader1->CreateFromFile(vShader, fShader);
+	shaderList.push_back(*shader1);
+};
+//-------------------------------------------------------------------------------------------------------------
+int main()
+{
+	mainWindow = Window(800, 600);
+	mainWindow.initialize();
+
+	CreateObjects();
+	CreateShaders();
+
+	GLint MaxUniforms;
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);
+	printf("Max uniforms in vertex shader: %d\n", MaxUniforms);
+
+	GLint maxTextureUnits;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+	printf("Max texture units in fragment shader: %d\n", maxTextureUnits);
+
+	GLuint uniformProjection = 0, uniformModel = 0;
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth()/ (GLfloat)mainWindow.getBufferHeight(), 0.1f, 100.0f);
+
+	//Loop it until the window closes
+	while (!mainWindow.getShouldClose())
+	{
+		//Get and handle the user input evets
+		glfwPollEvents();
+
+		//printf("Current Angle: %f\n", currentAngle);
+		//Clear window
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		shaderList[0].UseShader();
+		uniformModel = shaderList[0].GetModelLocation();
+		uniformProjection = shaderList[0].GetProjectionLocation();
+
+		glm::mat4 model(1.0f);//Will set "model" as an identity matrix
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));//Changing the model matrix values by translating it by the value of triOffset
+		//model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));//Roating the model matrix by 45 degrees around the z axis
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+		meshList[0]->RenderMesh(); //Drawing the object
+		
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f));
+		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		meshList[1]->RenderMesh(); //Drawing the object
+
+		
+
+		glUseProgram(0);
+
+		mainWindow.swapBuffers();//Two scenes will be worked on, one will be displayed and one will be worked on and swaps displayed on with worked on one. 
+	}
+	return 0;
+};
