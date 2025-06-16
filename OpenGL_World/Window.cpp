@@ -4,12 +4,23 @@ Window::Window()
 {
 	width = 800;
 	height = 600;
+
+	for (size_t i = 0; i < 1024; i++) 
+	{
+		keys[i] = 0;
+	}
 }
 
 Window::Window(GLint windowWidth, GLint windowHeight)
 {
 	width = windowWidth;
 	height = windowHeight;
+
+	for (size_t i = 0; i < 1024; i++)
+	{
+		keys[i] = 0;
+	}
+
 }
 
 int Window::initialize()
@@ -17,12 +28,12 @@ int Window::initialize()
 	//Initialisation of GLFW
 	if (!glfwInit())
 	{
-		printf("GLFW Initialisation failed!");
+		printf("GLFW Initialisation failed!\n");
 		glfwTerminate();
 		return 1;
 	};
 
-	//Setup GLFW windows props
+	//Setup GLFW window props
 	//OpenGL Ver
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -34,7 +45,7 @@ int Window::initialize()
 	mainWindow = glfwCreateWindow(width, height, "Test WIndow", NULL, NULL);
 	if (!mainWindow)
 	{
-		printf("GLFW window creation failed!");
+		printf("GLFW window creation failed!\n");
 		glfwTerminate();
 		return 1;
 	}
@@ -44,6 +55,13 @@ int Window::initialize()
 
 	//Set context for GLEW to use
 	glfwMakeContextCurrent(mainWindow); //Everything openGL is drawing to should be drawn to mainWindow, can switch multi windows and Switch between them
+
+	// Handle Key + Mouse input
+	createCallbacks();
+
+	//This hides the cursor and keeps it at the center, which window? what input?(cursor, keys etc), and what should be done to that input(cursor/keys)
+	glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 
 	//-------------------------------------------------------------------------------------------------------------
 
@@ -62,7 +80,89 @@ int Window::initialize()
 
 	//Setup Viewport size
 	glViewport(0, 0, bufferWidth, bufferHeight);
+
+	glfwSetWindowUserPointer(mainWindow, this);
+
+	printf("Window successfully initialized.\n");
+	return 0;
 }
+
+
+void Window::createCallbacks()
+{ 
+	glfwSetKeyCallback(mainWindow, handleKeys);
+	glfwSetCursorPosCallback(mainWindow, handleMouse);
+}
+GLfloat Window::getXChange() 
+{
+	GLfloat theChange = xChange;
+	xChange = 0.0f; // Reset xChange after getting it
+	return theChange;
+};
+GLfloat Window::getYChange()
+{
+	GLfloat theChange = yChange;
+	xChange = 0.0f; // Reset xChange after getting it
+	return theChange;
+};
+
+//--------------------------------------------------------------------------------------------------------------------------------
+//Handle Keys
+void Window::handleKeys(GLFWwindow* window, int key, int code, int mode, int action)
+{
+	printf("Key Event Triggered: key=%d, action=%d\n", key, action);
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+	//printf("Key: %d, Action: %d\n", key, action);
+
+	//If the user has pressed the Esc key, the window should close. That's why we are checking for both if any KEY is pressed and also if its the ESCAPE key.
+	if (key == GLFW_KEY_ESCAPE && (action == GLFW_PRESS || action == GLFW_RELEASE))
+	{
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
+
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+		{
+			theWindow->keys[key] = true; //If key is pressed, set the key to true
+			//printf("Pressed: %d\n", key);
+		} 
+		else if (action == GLFW_RELEASE)
+		{
+			theWindow->keys[key] = false;
+			//printf("Released: %d\n", key);
+		}
+
+	}
+
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+
+//Handle Mouse movement
+void Window::handleMouse(GLFWwindow* window, double xPos, double yPos)
+{
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+	if (theWindow->mouseFirstMoved)
+	{
+		theWindow->lastX = xPos;
+		theWindow->lastY = yPos;
+		theWindow->mouseFirstMoved = false;
+	}
+	theWindow->xChange = xPos - theWindow->lastX;
+	theWindow->yChange = theWindow->lastY - yPos; // Invert Y axis, because in OpenGL Y axis is inverted
+
+	theWindow->lastX = xPos;
+	theWindow->lastY = yPos;
+
+	//printf("x:%.6f, y:%.6f\n", theWindow->xChange, theWindow->yChange);
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+
+
 Window::~Window()
 {
 	glfwDestroyWindow(mainWindow);
