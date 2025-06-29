@@ -4,6 +4,7 @@ Window::Window()
 {
 	width = 800;
 	height = 600;
+	mouseFirstMoved = true;
 
 	for (size_t i = 0; i < 1024; i++) 
 	{
@@ -15,6 +16,7 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 {
 	width = windowWidth;
 	height = windowHeight;
+	mouseFirstMoved = true;
 
 	for (size_t i = 0; i < 1024; i++)
 	{
@@ -57,7 +59,7 @@ int Window::initialize()
 	glfwMakeContextCurrent(mainWindow); //Everything openGL is drawing to should be drawn to mainWindow, can switch multi windows and Switch between them
 
 	// Handle Key + Mouse input
-	createCallbacks();
+	
 
 	//This hides the cursor and keeps it at the center, which window? what input?(cursor, keys etc), and what should be done to that input(cursor/keys)
 	glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -78,10 +80,11 @@ int Window::initialize()
 
 	glEnable(GL_DEPTH_TEST); //Enabling depth test, will make sure the objects are drawn in the correct order, if not it will discard the object that is behind the other object
 
-	//Setup Viewport size
+	//Setup Viewport size, not belonged to GLFW actual openGL thing x, y co-ords and we need bufferWidth/height which is the section in the middle not the whole window.
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
 	glfwSetWindowUserPointer(mainWindow, this);
+	createCallbacks();
 
 	printf("Window successfully initialized.\n");
 	return 0;
@@ -108,10 +111,16 @@ GLfloat Window::getYChange()
 
 //--------------------------------------------------------------------------------------------------------------------------------
 //Handle Keys
-void Window::handleKeys(GLFWwindow* window, int key, int code, int mode, int action)
+void Window::handleKeys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	printf("[Key callback] Got key: %d, action: %d\n", key, action);
 	printf("Key Event Triggered: key=%d, action=%d\n", key, action);
+	printf("HANDLE KEYS HIT! key = %d, action = %d\n", key, action);
 	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (!theWindow) {
+		printf(" theWindow is null — user pointer not set properly!\n");
+		return;
+	}
 
 	//printf("Key: %d, Action: %d\n", key, action);
 
@@ -123,7 +132,7 @@ void Window::handleKeys(GLFWwindow* window, int key, int code, int mode, int act
 
 	if (key >= 0 && key < 1024)
 	{
-		if (action == GLFW_PRESS)
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
 		{
 			theWindow->keys[key] = true; //If key is pressed, set the key to true
 			//printf("Pressed: %d\n", key);
@@ -157,7 +166,7 @@ void Window::handleMouse(GLFWwindow* window, double xPos, double yPos)
 	theWindow->lastX = xPos;
 	theWindow->lastY = yPos;
 
-	//printf("x:%.6f, y:%.6f\n", theWindow->xChange, theWindow->yChange);
+	printf("x:%.6f, y:%.6f\n", theWindow->xChange, theWindow->yChange);
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------
