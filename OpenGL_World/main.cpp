@@ -29,7 +29,7 @@ const float toRadians = 3.14159265359f / 180.0f; //Converting degrees to radians
 Window mainWindow2;
 
 std::vector<Mesh*> meshList;
-std::vector<Shader*> shaderList;
+std::vector<Shader> shaderList;
 Camera camera;
 
 
@@ -68,7 +68,7 @@ void CreateShaders()
 {
 	Shader* shader1 = new Shader();
 	shader1->CreateFromFile(vShader, fShader);
-	shaderList.push_back(shader1);
+	shaderList.push_back(*shader1);
 };
 //-------------------------------------------------------------------------------------------------------------
 int main()
@@ -82,18 +82,18 @@ int main()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f, 5.0f, 1.0f);
+	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 0.01f, 1.0f);
 
-	GLint MaxUniforms;
+	/*GLint MaxUniforms;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);
 	printf("Max uniforms in vertex shader: %d\n", MaxUniforms);
 
 	GLint maxTextureUnits;
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-	printf("Max texture units in fragment shader: %d\n", maxTextureUnits);
+	printf("Max texture units in fragment shader: %d\n", maxTextureUnits);*/
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0;
-	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow2.getBufferWidth()/ (GLfloat)mainWindow2.getBufferHeight(), 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow2.getBufferWidth() / (GLfloat)mainWindow2.getBufferHeight(), 0.1f, 100.0f);
 
 	//Loop it until the window closes
 	while (!mainWindow2.getShouldClose())
@@ -101,15 +101,17 @@ int main()
 		//Get and handle the user input evets
 		glfwPollEvents();
 
+		camera.keyControl(mainWindow2.getKeys());
+
 		//printf("Current Angle: %f\n", currentAngle);
 		//Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shaderList[0]->UseShader();
-		uniformModel = shaderList[0]->GetModelLocation();
-		uniformProjection = shaderList[0]->GetProjectionLocation();
-		uniformView = shaderList[0]->GetViewLocation();
+		shaderList[0].UseShader();
+		uniformModel = shaderList[0].GetModelLocation();
+		uniformProjection = shaderList[0].GetProjectionLocation();
+		uniformView = shaderList[0].GetViewLocation();
 
 		glm::mat4 model(1.0f);//Will set "model" as an identity matrix
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));//Changing the model matrix values by translating it by the value of triOffset
@@ -119,7 +121,7 @@ int main()
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 		meshList[0]->RenderMesh(); //Drawing the object
-		
+
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));

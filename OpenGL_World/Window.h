@@ -41,7 +41,7 @@ private:
 	bool mouseFirstMoved;
 
 	void createCallbacks();
-	static void handleKeys(GLFWwindow* window, int key, int code, int action, int mode);
+	static void handleKeys(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void handleMouse(GLFWwindow* window, double xPos, double yPos);
 
 };
