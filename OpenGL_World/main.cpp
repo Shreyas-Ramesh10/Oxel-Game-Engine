@@ -32,6 +32,9 @@ std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 Camera camera;
 
+GLfloat deltaTime = 0.0f;
+GLfloat lastTime = 0.0f;
+
 
 // Vertex Shader
 static const char* vShader = "Shaders/shader_vert.glsl.txt";
@@ -63,7 +66,7 @@ void CreateObjects()
 	obj2->CreateMesh(vertices, indices, 12, 12);
 	meshList.push_back(obj2);
 }
-
+ 
 void CreateShaders()
 {
 	Shader* shader1 = new Shader();
@@ -82,7 +85,7 @@ int main()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 0.01f, 1.0f);
+	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f);
 
 	/*GLint MaxUniforms;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);
@@ -98,10 +101,16 @@ int main()
 	//Loop it until the window closes
 	while (!mainWindow2.getShouldClose())
 	{
+		GLfloat now = glfwGetTime();
+		deltaTime = now - lastTime;
+		lastTime = now;
+
+
 		//Get and handle the user input evets
 		glfwPollEvents();
 
-		camera.keyControl(mainWindow2.getKeys());
+		camera.keyControl(mainWindow2.getKeys(), deltaTime);
+		camera.mouseControl(mainWindow2.getXChange(), mainWindow2.getYChange());
 
 		//printf("Current Angle: %f\n", currentAngle);
 		//Clear window
