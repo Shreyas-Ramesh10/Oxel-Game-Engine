@@ -105,7 +105,7 @@ GLfloat Window::getXChange()
 GLfloat Window::getYChange()
 {
 	GLfloat theChange = yChange;
-	xChange = 0.0f; // Reset xChange after getting it
+	yChange = 0.0f; // Reset xChange after getting it
 	return theChange;
 };
 
@@ -113,9 +113,9 @@ GLfloat Window::getYChange()
 //Handle Keys
 void Window::handleKeys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	printf("[Key callback] Got key: %d, action: %d\n", key, action);
+	/*printf("[Key callback] Got key: %d, action: %d\n", key, action);
 	printf("Key Event Triggered: key=%d, action=%d\n", key, action);
-	printf("HANDLE KEYS HIT! key = %d, action = %d\n", key, action);
+	printf("HANDLE KEYS HIT! key = %d, action = %d\n", key, action);*/
 	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 	if (!theWindow) {
 		printf(" theWindow is null — user pointer not set properly!\n");

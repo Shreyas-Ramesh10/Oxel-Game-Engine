@@ -16,11 +16,12 @@ Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp, GLfloat startYaw, GLf
 	update();
 }
 
-void Camera::keyControl(bool* keys) 
+void Camera::keyControl(bool* keys, GLfloat deltaTime)
 {
+	GLfloat velocity = moveSpeed * deltaTime;
 	if (keys[GLFW_KEY_W])
 	{
-		position += front * moveSpeed;
+		position += front * velocity;
 		printf("Camera::keyControl called. W key = %d\n", keys[GLFW_KEY_W]);
 
 		printf("Moved Forward, Position: (%f,%f,%f)\n", position.x, position.y, position.z);
@@ -28,23 +29,43 @@ void Camera::keyControl(bool* keys)
 
 	if (keys[GLFW_KEY_S])
 	{
-		position -= front * moveSpeed;
+		position -= front * velocity;
 		printf("Moved Backwards, Position: (%f,%f,%f)\n", position.x, position.y, position.z);
 	}
 
 	if (keys[GLFW_KEY_A])
 	{
-		position -= right * moveSpeed;
+		position -= right * velocity;
 		printf("Moved Left, Position: (%f,%f,%f)\n", position.x, position.y, position.z);
 	}
 
 	if (keys[GLFW_KEY_D])
 	{
-		position += right * moveSpeed;
+		position += right * velocity;
 		printf("Moved Right, Position: (%f,%f,%f)\n", position.x, position.y, position.z);
 	}
-
 }
+
+void Camera::mouseControl(GLfloat xChange, GLfloat yChange) 
+{
+	xChange *=  turnSpeed;
+	yChange *=  turnSpeed;
+
+	yaw += xChange;
+	pitch += yChange;
+
+	if (pitch > 89.0f)
+	{
+		pitch = 89.0f;
+	}
+
+	if (pitch < -89.0f)
+	{
+		pitch = -89.0f;
+	}
+
+	update();
+};
 
 glm::mat4 Camera::calculateViewMatrix()
 {
@@ -55,7 +76,7 @@ void Camera::update()
 { 
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw) * cos(glm::radians(pitch)));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	front = glm::normalize(front);
 
 	right = glm::normalize(glm::cross(front, worldUp));
