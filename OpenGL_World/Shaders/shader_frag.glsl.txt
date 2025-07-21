@@ -1,13 +1,20 @@
 #version 330
 
-in vec4 vCol;//inputting the colour from the vertex shader
+in vec4 vCol;
 in vec2 TexCoord0;					
 																
 out vec4 colour;
+struct DirectionalLight
+{
+	vec3 color;
+	float ambientIntensity;
+};
 
-uniform sampler2D theTexture;						
+uniform sampler2D theTexture;		
+uniform DirectionalLight directionalLight;	
 																
 void main()																					
 {													
-	colour = texture(theTexture, TexCoord0);
+	vec4 ambientColor = vec4(directionalLight.color, 1.0f) * directionalLight.ambientIntensity;
+	colour = texture(theTexture, TexCoord0) * ambientColor;
 }

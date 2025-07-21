@@ -92,6 +92,8 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	uniformModel = glGetUniformLocation(shaderID, "model");//Will use the uniform location to pass the model matrix to the shader
 	uniformProjection = glGetUniformLocation(shaderID, "projection");
 	uniformView = glGetUniformLocation(shaderID, "view");
+	uniformAmbientIntensity = glGetUniformLocation(shaderID, "directionalLight.ambientIntensity");//Binding to directinoalLight. struct's color
+	uniformAmbientColor = glGetUniformLocation(shaderID, "directionalLight.color");
 };
 
 GLuint Shader::GetProjectionLocation() 
@@ -105,6 +107,14 @@ GLuint Shader::GetModelLocation()
 GLuint Shader::GetViewLocation()
 {
 	return uniformView;
+};
+GLuint Shader::GetAmbientColorLocation()
+{
+	return uniformAmbientColor;
+};
+GLuint Shader::GetAmbientIntensityLocation()
+{
+	return uniformAmbientIntensity;
 };
 
 
