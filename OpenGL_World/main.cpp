@@ -21,6 +21,7 @@
 #include "Window.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "Light.h"
 /* new way to intitialise identity matrix
 glm::mat4 model(1.0f);
 glm::mat4 model = glm::mat4(1.0f);
@@ -41,6 +42,8 @@ GLfloat lastTime = 0.0f;
 
 Texture brickTexture;
 Texture dirtTexture;
+
+Light mainLight;
 
 
 // Vertex Shader
@@ -102,6 +105,8 @@ int main()
 
 	brickTexture.UseTexture();
 
+	mainLight = Light(1.0f, 1.0f,1.0f,0.2f);
+
 	/*GLint MaxUniforms;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);
 	printf("Max uniforms in vertex shader: %d\n", MaxUniforms);
@@ -110,7 +115,7 @@ int main()
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
 	printf("Max texture units in fragment shader: %d\n", maxTextureUnits);*/
 
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0;
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformAmbientIntensity = 0, uniformAmbientColor = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow2.getBufferWidth() / (GLfloat)mainWindow2.getBufferHeight(), 0.1f, 100.0f);
 
 	//Loop it until the window closes
@@ -136,8 +141,13 @@ int main()
 		uniformModel = shaderList[0].GetModelLocation();
 		uniformProjection = shaderList[0].GetProjectionLocation();
 		uniformView = shaderList[0].GetViewLocation();
+		uniformAmbientColor = shaderList[0].GetAmbientColorLocation();
+		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
+
+		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor);
 
 		glm::mat4 model(1.0f);//Will set "model" as an identity matrix
+
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));//Changing the model matrix values by translating it by the value of triOffset
 		//model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));//Roating the model matrix by 45 degrees around the z axis
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
