@@ -1,10 +1,12 @@
 #version 330													
 																
-layout (location = 0) in vec3 pos;
+layout (location = 0) in vec3 pos; //Where the object is from the origin
 layout (location = 1) in vec2 tex;
+layout (location = 2) in vec3 norm; //Direction from the pos - perpendicular to the surface of an object (multiple norms) -> interpolating the values "phong".
 
 out vec4 vCol; //outputting the colour to the fragment shader
 out vec2 TexCoord0;
+out vec3 Normal;
 
 uniform mat4 model;
 uniform mat4 projection;
@@ -14,8 +16,10 @@ void main()
 {											
 	gl_Position = projection * view * model * vec4(pos, 1.0);
 
-    //when we consider the matrix GLfloat vertices[] there are negative values like (-1.0f), clamp will make sure the values are between 0 and 1, if not it will set them to 0 or 1
+    //when we consider the matrix GLfloat vertices[] there are negative values like (-1.0f), clamp will make sure the values are between 0 and 1
 	vCol = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);
 
 	TexCoord0 = tex;
+	
+	Normal = mat3(transpose(inverse(model))) * norm;
 }
