@@ -22,6 +22,7 @@
 #include "Camera.h"
 #include "Texture.h"
 #include "Light.h"
+#include "Material.h"
 /* new way to intitialise identity matrix
 glm::mat4 model(1.0f);
 glm::mat4 model = glm::mat4(1.0f);
@@ -42,6 +43,9 @@ GLfloat lastTime = 0.0f;
 
 Texture brickTexture;
 Texture dirtTexture;
+
+Material shinyMaterial;
+Material dullMaterial;
 
 Light mainLight;
 
@@ -97,9 +101,9 @@ void CreateObjects()
 	};
 	GLfloat vertices[] = {
 	//    x      y     z      u     v (height)  normX normY normZ
-		-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,        0.0f, 0.0f, 0.0f,// Bottom Left
+		-1.0f, -1.0f, -0.6f,  0.0f, 0.0f,        0.0f, 0.0f, 0.0f,// Bottom Left
 		 0.0f, -1.0f, 1.0f,	 0.5f, 0.0f,		0.0f, 0.0f, 0.0f,// Background
-		 1.0f, -1.0f, 0.0f,  1.0f, 0.0f,		0.0f, 0.0f, 0.0f,// Bottom Right
+		 1.0f, -1.0f, -0.6f,  1.0f, 0.0f,		0.0f, 0.0f, 0.0f,// Bottom Right
 		 0.0f,  1.0f, 0.0f,  0.5f, 1.0f,		0.0f, 0.0f, 0.0f // Top
 	};
 
@@ -123,7 +127,7 @@ void CreateShaders()
 //-------------------------------------------------------------------------------------------------------------
 int main()
 {
-	mainWindow2 = Window(800, 600);
+	mainWindow2 = Window(1366, 768);
 	if (mainWindow2.initialize() != 0) {
 		printf("Failed to initialize window.\n");
 		return -1;
@@ -141,8 +145,11 @@ int main()
 
 	brickTexture.UseTexture();
 
+	shinyMaterial = Material(1.0f, 16);
+	dullMaterial = Material(0.3f, 2);
+
 	mainLight = Light(1.0f, 1.0f,1.0f,0.2f, 
-					2.0f, -1.0f, -2.0f, 1.0f);
+					2.0f, -1.0f, -2.0f, 0.3f);
 
 	/*GLint MaxUniforms;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);
@@ -152,7 +159,9 @@ int main()
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
 	printf("Max texture units in fragment shader: %d\n", maxTextureUnits);*/
 
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0 ,uniformDiffuseIntensity = 0;
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, 
+		uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0 ,uniformDiffuseIntensity = 0,
+		uniformEyePosition = 0,uniformSpecularIntensity = 0, uniformShininess = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow2.getBufferWidth() / (GLfloat)mainWindow2.getBufferHeight(), 0.1f, 100.0f);
 
 	//Loop it until the window closes
@@ -182,25 +191,32 @@ int main()
 		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
 		uniformDirection = shaderList[0].GetDirectionLocation();
 		uniformDiffuseIntensity = shaderList[0].GetDiffuseIntensityLocation();
+		uniformEyePosition = shaderList[0].GetEyePositionLocation();
+		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
+		uniformShininess = shaderList[0].GetShininessLocation();
 
 		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor, uniformDiffuseIntensity, uniformDirection);
+
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
+		glUniform3f(uniformEyePosition, camera.getCameraPostion().x, camera.getCameraPostion().y, camera.getCameraPostion().z);
 
 		glm::mat4 model(1.0f);//Will set "model" as an identity matrix
 
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));//Changing the model matrix values by translating it by the value of triOffset
 		//model = glm::rotate(model, currentAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));//Roating the model matrix by 45 degrees around the z axis
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix()));
 		brickTexture.UseTexture();
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[0]->RenderMesh(); //Drawing the object
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f));
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		model = glm::translate(model, glm::vec3(0.0f, 2.0f, -2.5f));
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		dirtTexture.UseTexture();
+		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[1]->RenderMesh(); //Drawing the object
 
 		glUseProgram(0);
