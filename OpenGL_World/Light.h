@@ -11,8 +11,8 @@ public:
 		GLfloat xDir, GLfloat yDir, GLfloat zDir, GLfloat dIntensity);//aIntensity = ambient intensity
 
 	//Locations in GPU to add these values to shader || will be overwridden for point and spot light
-	void UseLight(GLfloat ambientIntensityLocation, GLfloat ambientColorLocation, 
-		GLfloat diffuseIntensityLocation, GLfloat directionLocation);
+	void UseLight(GLuint ambientIntensityLocation, GLuint ambientColorLocation,
+		GLuint diffuseIntensityLocation, GLuint directionLocation);
 
 	~Light();
 
