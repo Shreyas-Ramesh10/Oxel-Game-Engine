@@ -31,7 +31,7 @@ model = glm::mat4(1.0f);
 
 const float toRadians = 3.14159265359f / 180.0f; //Converting degrees to radians
 
-Window mainWindow2;
+Window mainWindow2(1366, 768);
 Camera camera;
 
 
@@ -41,8 +41,8 @@ std::vector<Shader> shaderList;
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
-Texture brickTexture;
-Texture dirtTexture;
+Texture brickTexture("Textures/brick.png");
+Texture dirtTexture("Textures/dirt.png");
 
 Material shinyMaterial;
 Material dullMaterial;
@@ -127,7 +127,7 @@ void CreateShaders()
 //-------------------------------------------------------------------------------------------------------------
 int main()
 {
-	mainWindow2 = Window(1366, 768);
+	//mainWindow2 = Window(1366, 768);
 	if (mainWindow2.initialize() != 0) {
 		printf("Failed to initialize window.\n");
 		return -1;
@@ -138,12 +138,12 @@ int main()
 
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f);
 
-	brickTexture = Texture("Textures/brick.png");
+	//brickTexture = Texture("Textures/brick.png");
 	brickTexture.LoadTexture();
-	dirtTexture = Texture("Textures/dirt.png");
+	//dirtTexture = Texture("Textures/dirt.png");
 	dirtTexture.LoadTexture();
-
-	brickTexture.UseTexture();
+ 
+	//brickTexture.UseTexture();
 
 	shinyMaterial = Material(1.0f, 16);
 	dullMaterial = Material(0.3f, 2);
@@ -184,6 +184,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shaderList[0].UseShader();
+
 		uniformModel = shaderList[0].GetModelLocation();
 		uniformProjection = shaderList[0].GetProjectionLocation();
 		uniformView = shaderList[0].GetViewLocation();
@@ -219,8 +220,17 @@ int main()
 		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[1]->RenderMesh(); //Drawing the object
 
-		glUseProgram(0);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 4.0f, -2.5f));
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		dirtTexture.UseTexture();
+		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		meshList[1]->RenderMesh(); //Drawing the object
 
+
+		glUseProgram(0);
+		//Two scenes will be worked on, one will be displayed and one will be worked on and swaps displayed on with worked on one. 
 		mainWindow2.swapBuffers();//Two scenes will be worked on, one will be displayed and one will be worked on and swaps displayed on with worked on one. 
 	}
 	return 0;
