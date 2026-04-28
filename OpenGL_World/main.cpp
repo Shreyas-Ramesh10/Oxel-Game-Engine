@@ -21,7 +21,7 @@
 #include "Window.h"
 #include "Camera.h"
 #include "Texture.h"
-#include "Light.h"
+#include "DirectionalLight.h"
 #include "Material.h"
 /* new way to intitialise identity matrix
 glm::mat4 model(1.0f);
@@ -47,7 +47,7 @@ Texture dirtTexture("Textures/dirt.png");
 Material shinyMaterial;
 Material dullMaterial;
 
-Light mainLight;
+DirectionalLight mainLight;
 
 
 // Vertex Shader
@@ -101,10 +101,10 @@ void CreateObjects()
 	};
 	GLfloat vertices[] = {
 	//    x      y     z      u     v (height)  normX normY normZ
-		-1.0f, -1.0f, -0.6f,  0.0f, 0.0f,        0.0f, 0.0f, 0.0f,// Bottom Left
-		 0.0f, -1.0f, 1.0f,	 0.5f, 0.0f,		0.0f, 0.0f, 0.0f,// Background
+		-1.0f, -1.0f, -0.6f,  0.0f, 0.0f,       0.0f, 0.0f, 0.0f,// Bottom Left
+		 0.0f, -1.0f, 1.0f,	  0.5f, 0.0f,		0.0f, 0.0f, 0.0f,// Background
 		 1.0f, -1.0f, -0.6f,  1.0f, 0.0f,		0.0f, 0.0f, 0.0f,// Bottom Right
-		 0.0f,  1.0f, 0.0f,  0.5f, 1.0f,		0.0f, 0.0f, 0.0f // Top
+		 0.0f,  1.0f, 0.0f,   0.5f, 1.0f,		0.0f, 0.0f, 0.0f // Top
 	};
 
 	calcAverageNormals(indices, 12, vertices, 32, 8, 5);
@@ -127,7 +127,7 @@ void CreateShaders()
 //-------------------------------------------------------------------------------------------------------------
 int main()
 {
-	//mainWindow2 = Window(1366, 768);
+	mainWindow2 = Window(1366, 768);
 	if (mainWindow2.initialize() != 0) {
 		printf("Failed to initialize window.\n");
 		return -1;
@@ -145,11 +145,12 @@ int main()
  
 	//brickTexture.UseTexture();
 
-	shinyMaterial = Material(1.0f, 16);
-	dullMaterial = Material(0.3f, 2);
+	shinyMaterial = Material(1.0f, 32);
+	dullMaterial = Material(0.3f, 4);
 
-	mainLight = Light(1.0f, 1.0f,1.0f,0.2f, 
-					2.0f, -1.0f, -2.0f, 0.3f);
+	mainLight = DirectionalLight(1.0f, 1.0f,1.0f,
+								0.2f,0.3f,
+								2.0f, -1.0f, -2.0f);
 
 	/*GLint MaxUniforms;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &MaxUniforms);

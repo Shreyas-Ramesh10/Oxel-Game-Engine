@@ -11,6 +11,7 @@ struct DirectionalLight
 {
 	vec3 color;
 	float ambientIntensity;
+	 
 	vec3 direction;
 	float diffuseIntensity;
 };
@@ -21,7 +22,8 @@ struct Material
 	float shininess;
 };
 
-uniform sampler2D theTexture;		
+uniform sampler2D theTexture;	
+	
 uniform DirectionalLight directionalLight;
 uniform Material material;
 
@@ -32,17 +34,18 @@ void main()
 	vec4 ambientColor = vec4(directionalLight.color, 1.0f) * directionalLight.ambientIntensity;
 	
 	//A.B = |A|.|B| cos(angle) -> after normalzing |A||B| = 1, so -> A.B = cos(angle)
+	
 	float diffuseFactor = max(dot(normalize(Normal), normalize(directionalLight.direction)), 0.0f); //Taking max to keep the value above zero.
 	vec4 diffuseColor = vec4(directionalLight.color, 1.0f) * directionalLight.diffuseIntensity * diffuseFactor;
 	
-	vec4 specularColor = vec4(0,0,0,0);
+	vec4 specularColor = vec4(0, 0, 0, 0);
 	
 	if(diffuseFactor > 0.0f)
 	{
 		vec3 fragToEye = normalize(eyePosition - FragPos);
 		vec3 reflectedVertex = normalize(reflect(directionalLight.direction, normalize(Normal)));
 		
-		float specularFactor = (dot(fragToEye, reflectedVertex));
+		float specularFactor = dot(fragToEye, reflectedVertex);
 		if(specularFactor > 0.0f)
 		{
 			specularFactor = pow(specularFactor, material.shininess); //Factor to the pow of shininess
